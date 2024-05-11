@@ -2,12 +2,41 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { nanoid } from "nanoid";
 
+const DEFAULT_CHAT_STORAGE_NAME = "video-analysis-assistant-msg";
+const DEFAULT_TOPIC = "Start a New Conversation";
+const CHAT_ENDPOINT = "http://140.113.207.195:30010/chat";
+
+const DEFAULT_CHAT_STATE = {
+	sessions: [createEmptySession()],
+	currentSessionIndex: 0,
+};
+
 function createEmptySession() {
 	return {
 		id: nanoid(),
-		topic: "Start a New Conversation",
+		topic: DEFAULT_TOPIC,
 		messages: [],
 	};
+}
+
+async function fetchChatData(messages) {
+	const response = await fetch(CHAT_ENDPOINT, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Access-Control-Allow-Origin": "*",
+		},
+		body: JSON.stringify({
+			question: messages[messages.length - 1].content,
+			context: messages.map((message) => message.content).join(" \n "),
+		}),
+	});
+
+	if (!response.ok) {
+		throw new Error("Network response was not ok");
+	}
+
+	return response.json();
 }
 
 export function createMessage(override) {
@@ -18,11 +47,6 @@ export function createMessage(override) {
 		...override,
 	};
 }
-
-const DEFAULT_CHAT_STATE = {
-	sessions: [createEmptySession()],
-	currentSessionIndex: 0,
-};
 
 export const useMsgStore = create(
 	persist(
@@ -43,31 +67,46 @@ export const useMsgStore = create(
 			selectSession: (index) => set({ currentSessionIndex: index }),
 
 			newSession() {
-                set((state) => ({ sessions: [...state.sessions, createEmptySession()] }));
+				set((state) => ({
+					sessions: [createEmptySession(), ...state.sessions],
+				}));
 			},
 
 			deleteSession: (index) => {
 				const deletingLastSession = get().sessions.length === 1;
-				const deletedSession = get().sessions.at(index);
 
 				if (deletingLastSession) {
 					get().clearSessions();
 				} else {
 					set((state) => ({
-						sessions:  state.sessions.filter((_, i) => i !== index),
-						currentSessionIndex: 0
+						sessions: state.sessions.filter((_, i) => i !== index),
+						currentSessionIndex: 0,
 					}));
 				}
 			},
 
-			currentSession: () => get().sessions[get().currentSessionIndex],
+			currentSession: () => {
+				let index = get().currentSessionIndex;
+				const sessions = get().sessions;
+
+				if (index < 0 || index >= sessions.length) {
+					index = Math.min(sessions.length - 1, Math.max(0, index));
+					set(() => ({ currentSessionIndex: index }));
+				}
+
+				return sessions[index];
+			},
 
 			onNewMessage(message) {
 				get().updateCurrentSession((session) => {
 					session.messages = message;
 				});
-				// get().updateStat(message);
-				// get().summarizeSession();
+			},
+
+			onNewTopic(topic) {
+				get().updateCurrentSession((session) => {
+					session.topic = topic;
+				});
 			},
 
 			async onUserInput(text) {
@@ -86,37 +125,26 @@ export const useMsgStore = create(
 					content: text,
 				});
 
-				const newMessages = get().currentSession().messages.concat(userMessage);
-				get().onNewMessage(newMessages);
+				const newUserMessages = get()
+					.currentSession()
+					.messages.concat(userMessage);
+				get().onNewMessage(newUserMessages);
 
-				const requestChat = async (messages) => {
-					try {
-						const response = await fetch("http://140.113.207.195:30010/chat", {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-								// Remove the "Access-Control-Allow-Origin" header
-							},
-							mode: "cors", // Add this line to enable CORS
-							body: JSON.stringify({
-								question: messages[messages.length - 1].content,
-								context: messages
-									.map((message) => message.content)
-									.join(" \n "),
-							}),
-						});
-						const data = await response.json();
-						return data;
-					} catch (error) {
-						console.error("Error:", error);
-					}
-				};
+				const res = await fetchChatData(get().currentSession().messages);
 
-				console.log("messages:" + get().currentSession().messages);
+				let botMessage = createMessage({
+					role: "assissant",
+					content: res?.answer,
+				});
 
-				const res = await requestChat(get().currentSession().messages);
+				const newBotMessages = get()
+					.currentSession()
+					.messages.concat(botMessage);
+				get().onNewMessage(newBotMessages);
 
-				// console.log("res:" + res);
+				if (newBotMessages.length > 3) {
+					get().summarizeSession();
+				}
 
 				// get().onNewMessage({
 				// 	...(res.choices[0].message || {}),
@@ -127,19 +155,23 @@ export const useMsgStore = create(
 				get().onNewMessage(message);
 			},
 
-			summarizeSession() {
+			async summarizeSession() {
 				const session = get().currentSession();
 
 				if (session.topic !== DEFAULT_TOPIC) return;
 
-				requestWithPrompt(
-					session.messages,
-					"简明扼要地 10 字以内总结主题"
-				).then((res) => {
-					get().updateCurrentSession(
-						(session) => (session.topic = trimTopic(res))
-					);
+				let newPromptMessage = createMessage({
+					role: "system",
+					content: "Summarize the topic succinctly in 10 words",
 				});
+
+				const newMessages = session.messages.concat(newPromptMessage);
+
+				const res = await fetchChatData(newMessages);
+
+				const topic = res?.answer;
+
+				get().onNewTopic(topic);
 			},
 
 			updateStat(message) {
@@ -157,14 +189,8 @@ export const useMsgStore = create(
 			},
 		}),
 		{
-			name: "video-analysis-assistant-msg",
+			name: DEFAULT_CHAT_STORAGE_NAME,
 			storage: createJSONStorage(() => localStorage),
 		}
 	)
 );
-
-const useBearStore = create((set) => ({
-	bears: 0,
-	increasePopulation: () => set((state) => ({ bears: state.bears + 1 })),
-	removeAllBears: () => set({ bears: 0 }),
-}));
