@@ -17,6 +17,18 @@ const useHasHydrated = () => {
   return hasHydrated;
 };
 
+const loadAsyncGoogleFont = () => {
+	const linkEl = document.createElement("link");
+	const googleFontUrl = "https://fonts.googleapis.com";
+	linkEl.rel = "stylesheet";
+	linkEl.href =
+		googleFontUrl +
+		"/css2?family=" +
+		encodeURIComponent("Noto Sans:wght@300;400;700;900") +
+		"&display=swap";
+	document.head.appendChild(linkEl);
+};
+
 const LoadingPage = () => (
   <div className="flex items-center justify-center h-screen">
     <div className="animate-spin">
@@ -29,6 +41,9 @@ const LoadingPage = () => (
 );
 
 export default function Home() {
+	useEffect(() => {
+		loadAsyncGoogleFont();
+	}, []);
 
   if (!useHasHydrated()) {
     return <LoadingPage />;

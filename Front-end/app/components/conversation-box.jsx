@@ -2,6 +2,11 @@
 
 import { useRef, useEffect } from "react";
 import { useMsgStore } from "./store";
+import dynamic from "next/dynamic";
+
+const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
+	loading: () => <div> Loading... </div>,
+});
 
 export function ConversationBox() {
 	const messages = useMsgStore((state) => state.currentSession().messages);
@@ -32,13 +37,23 @@ export function ConversationBox() {
 							} p-4`}
 						>
 							<div
-								className={`p-4 rounded-lg max-w-[80%] ${
+								className={`p-4 whitespace-pre-line rounded-lg border-[1.5px] border-gray-500 max-w-[80%] ${
 									message.role === "user"
 										? "bg-blue-700 text-white"
 										: "bg-gray-200 text-gray-900"
 								}`}
 							>
-								{message.content}
+								<Markdown
+									content={message.content}
+									loading={
+										(message.preview || message.streaming) &&
+										message.content.length === 0 &&
+										!isUser
+									}
+									fontSize={16}
+									parentRef={messagesEndRef}
+									defaultShow={idx >= messages.length - 6}
+								/>
 							</div>
 						</div>
 					))}
