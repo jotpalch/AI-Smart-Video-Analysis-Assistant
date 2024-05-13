@@ -130,8 +130,6 @@ export const MarkdownContent = React.memo(_MarkDownContent);
 export function Markdown(props) {
 	const mdRef = useRef(null);
 
-	console.log(props);
-
 	return (
 		<div
 			className="markdown-body"

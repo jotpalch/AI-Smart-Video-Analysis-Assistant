@@ -2,9 +2,12 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { nanoid } from "nanoid";
 
-const DEFAULT_CHAT_STORAGE_NAME = "video-analysis-assistant-msg";
-const DEFAULT_TOPIC = "Start a New Conversation";
-const CHAT_ENDPOINT = "http://140.113.207.195:30010/chat";
+import {
+	DEFAULT_TOPIC,
+	DEFAULT_CHAT_STORAGE_NAME,
+	DEFAULT_SETTINGS,
+	ApiPath,
+} from "../config";
 
 const DEFAULT_CHAT_STATE = {
 	sessions: [createEmptySession()],
@@ -14,21 +17,28 @@ const DEFAULT_CHAT_STATE = {
 function createEmptySession() {
 	return {
 		id: nanoid(),
+		url: "",
 		topic: DEFAULT_TOPIC,
+		step: 0,
+		setting: {
+			model: DEFAULT_SETTINGS.model,
+			modelSize: DEFAULT_SETTINGS.modelSize,
+			language: DEFAULT_SETTINGS.language,
+			needTranslation: false,
+		},
 		messages: [],
 	};
 }
 
 async function fetchChatData(messages) {
-	const response = await fetch(CHAT_ENDPOINT, {
+	const response = await fetch(ApiPath.Chat, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 			"Access-Control-Allow-Origin": "*",
 		},
 		body: JSON.stringify({
-			question: messages[messages.length - 1].content,
-			context: messages.map((message) => message.content).join(" \n "),
+			context: messages,
 		}),
 	});
 
@@ -70,6 +80,33 @@ export const useMsgStore = create(
 				set((state) => ({
 					sessions: [createEmptySession(), ...state.sessions],
 				}));
+			},
+
+			newSessionWithSetting(setting, url = "") {
+				const newSession = createEmptySession();
+				newSession.url = url;
+				newSession.setting = setting;
+				set((state) => ({
+					sessions: [newSession, ...state.sessions],
+					currentSessionIndex: 0,
+				}));
+			},
+
+			newSessionWithText(text) {
+				const newSession = createEmptySession();
+				let botMessage = createMessage({
+					role: "assissant",
+					content: text,
+				});
+				newSession.messages.push(botMessage);
+				set((state) => ({
+					sessions: [newSession, ...state.sessions],
+					currentSessionIndex: 0,
+				}));
+
+				if (get().currentSession().messages.length >= 1) {
+					get().summarizeSession();
+				}
 			},
 
 			deleteSession: (index) => {
@@ -142,7 +179,7 @@ export const useMsgStore = create(
 					.messages.concat(botMessage);
 				get().onNewMessage(newBotMessages);
 
-				if (newBotMessages.length > 3) {
+				if (newBotMessages.length >= 1) {
 					get().summarizeSession();
 				}
 
@@ -156,13 +193,20 @@ export const useMsgStore = create(
 			},
 
 			async summarizeSession() {
+				console.log("Get summary topic...");
+
 				const session = get().currentSession();
+				let promptMsg = "Summarize the topic succinctly in 7 words";
 
 				if (session.topic !== DEFAULT_TOPIC) return;
 
+				if (session.setting.language === "zh") {
+					promptMsg = "請用十個字簡潔地歸納主題 用繁體中文";
+				}
+
 				let newPromptMessage = createMessage({
 					role: "system",
-					content: "Summarize the topic succinctly in 10 words",
+					content: promptMsg,
 				});
 
 				const newMessages = session.messages.concat(newPromptMessage);
@@ -187,6 +231,23 @@ export const useMsgStore = create(
 				updater(sessions[index]);
 				set(() => ({ sessions }));
 			},
+
+			updateStep(step) {
+				get().updateCurrentSession((session) => {
+					session.step = step;
+				});
+			},
+
+			updateSessionWithTranscript(transcript) {
+				const session = get().currentSession();
+				let botMessage = createMessage({
+					role: "assissant",
+					content: transcript,
+				});
+				session.messages.push(botMessage);
+				get().onNewMessage(session.messages);
+				get().summarizeSession();
+			},
 		}),
 		{
 			name: DEFAULT_CHAT_STORAGE_NAME,
@@ -194,3 +255,22 @@ export const useMsgStore = create(
 		}
 	)
 );
+
+export const useSettingStore = create((set) => ({
+	setting: {
+		model: DEFAULT_SETTINGS.model,
+		modelSize: DEFAULT_SETTINGS.modelSize,
+		language: DEFAULT_SETTINGS.language,
+		needTranslation: false,
+	},
+
+	updateSetting: (setting) => set({ setting }),
+	updateModel: (model) =>
+		set((state) => ({ setting: { ...state.setting, model } })),
+	updateModelSize: (modelSize) =>
+		set((state) => ({ setting: { ...state.setting, modelSize } })),
+	updateLanguage: (language) =>
+		set((state) => ({ setting: { ...state.setting, language } })),
+	updateNeedTranslation: (needTranslation) =>
+		set((state) => ({ setting: { ...state.setting, needTranslation } })),
+}));

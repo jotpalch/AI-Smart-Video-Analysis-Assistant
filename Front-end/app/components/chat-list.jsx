@@ -18,36 +18,33 @@ export function ChatList() {
 				<div
 					onClick={() => selectSession(index)}
 					key={session.id}
-					className={`relative flex flex-col items-start px-4 py-2 rounded-xl border-2 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white hover:cursor-pointer ${
+					className={`relative flex flex-col items-start p-3 rounded-xl border-2 bg-gray-50 dark:bg-gray-900 dark:text-white hover:cursor-pointer ${
 						currentSessionIndex === index
-							? " text-white dark:border-blue-600 "
-							: ""
+							? " dark:border-blue-500 "
+							: " dark:border-gray-600 "
 					}`}
 				>
 					<div
-						className={`w-full my-3 font-semibold border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-200 dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+						className="w-full mt-1 mb-2 truncate tracking-tight font-semibold rounded-lg dark:text-gray-200"
 					>
 						{session.topic}
 					</div>
 					<div className="flex w-full justify-between">
-						<div className="block">{messageCounts[index]}</div>
-						<button onClick={() => deleteSession(index)} className="flex items-center gap-1">
-							<svg
-								fill="none"
-								viewBox="0 0 15 15"
-								height="0.9em"
-								width="1em"
-							>
-								<path
-									fill="#c45c6e"
-									fillRule="evenodd"
-									d="M15.854 12.854L11 8l4.854-4.854a.503.503 0 000-.707L13.561.146a.499.499 0 00-.707 0L8 5 3.146.146a.5.5 0 00-.707 0L.146 2.439a.499.499 0 000 .707L5 8 .146 12.854a.5.5 0 000 .707l2.293 2.293a.499.499 0 00.707 0L8 11l4.854 4.854a.5.5 0 00.707 0l2.293-2.293a.499.499 0 000-.707z"
-									clipRule="evenodd"
-								/>
-							</svg>
-                            <span className=" font-semibold text-[#c45c6e]"> Delete </span>
-						</button>
+						<div className="block text-gray-500">{messageCounts[index]} messages</div>
 					</div>
+					<button
+						onClick={() => deleteSession(index)}
+						className="flex items-center absolute end-2 bottom-2"
+					>
+						<svg fill="none" viewBox="0 0 15 15" height="1em" width="1em">
+							<path
+								fill="gray"
+								fillRule="evenodd"
+								d="M.877 7.5a6.623 6.623 0 1113.246 0 6.623 6.623 0 01-13.246 0zM7.5 1.827a5.673 5.673 0 100 11.346 5.673 5.673 0 000-11.346zm2.354 3.32a.5.5 0 010 .707L8.207 7.5l1.647 1.646a.5.5 0 01-.708.708L7.5 8.207 5.854 9.854a.5.5 0 01-.708-.708L6.793 7.5 5.146 5.854a.5.5 0 01.708-.708L7.5 6.793l1.646-1.647a.5.5 0 01.708 0z"
+								clipRule="evenodd"
+							/>
+						</svg>
+					</button>
 				</div>
 			))}
 		</div>
