@@ -7,6 +7,7 @@ import {
 	DEFAULT_CHAT_STORAGE_NAME,
 	DEFAULT_SETTINGS,
 	ApiPath,
+	Steps,
 } from "../config";
 
 const DEFAULT_CHAT_STATE = {
@@ -30,7 +31,7 @@ function createEmptySession() {
 	};
 }
 
-async function fetchChatData(messages) {
+async function fetchChatData(messages, model, language) {
 	const response = await fetch(ApiPath.Chat, {
 		method: "POST",
 		headers: {
@@ -39,6 +40,29 @@ async function fetchChatData(messages) {
 		},
 		body: JSON.stringify({
 			context: messages,
+			model: model,
+			language_tag: language,
+		}),
+	});
+
+	if (!response.ok) {
+		throw new Error("Network response was not ok");
+	}
+
+	return response.json();
+}
+
+async function fetchTaskData(messages, model, language) {
+	const response = await fetch(ApiPath.Task, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Access-Control-Allow-Origin": "*",
+		},
+		body: JSON.stringify({
+			context: messages,
+			model: model,
+			language_tag: language,
 		}),
 	});
 
@@ -148,6 +172,8 @@ export const useMsgStore = create(
 
 			async onUserInput(text) {
 				const session = get().currentSession();
+				const model = session.setting.model;
+				const language = session.setting.language;
 				const messages = session.messages;
 				const lastMessage = messages[messages.length - 1];
 				const isUser = lastMessage && lastMessage.author === "user";
@@ -167,7 +193,11 @@ export const useMsgStore = create(
 					.messages.concat(userMessage);
 				get().onNewMessage(newUserMessages);
 
-				const res = await fetchChatData(get().currentSession().messages);
+				const res = await fetchChatData(
+					get().currentSession().messages,
+					model,
+					language
+				);
 
 				let botMessage = createMessage({
 					role: "assissant",
@@ -192,10 +222,35 @@ export const useMsgStore = create(
 				get().onNewMessage(message);
 			},
 
+			async runTaskSession() {
+				console.log("Run the task...");
+
+				const session = get().currentSession();
+				const model = session.setting.model;
+				const language = session.setting.language;
+				const messages = session.messages;
+
+				get().updateStep(Steps.Task_Processing);
+
+				const res = await fetchTaskData(messages, model, language);
+
+				let botMessage = createMessage({
+					role: "assissant",
+					content: res?.answer,
+				});
+
+				const newMessages = session.messages.concat(botMessage);
+				get().onNewMessage(newMessages);
+
+				get().updateStep(Steps.Task_Done);
+			},
+
 			async summarizeSession() {
 				console.log("Get summary topic...");
 
 				const session = get().currentSession();
+				const model = session.setting.model;
+				const language = session.setting.language;
 				let promptMsg = "Summarize the topic succinctly in 7 words";
 
 				if (session.topic !== DEFAULT_TOPIC) return;
@@ -211,7 +266,7 @@ export const useMsgStore = create(
 
 				const newMessages = session.messages.concat(newPromptMessage);
 
-				const res = await fetchChatData(newMessages);
+				const res = await fetchChatData(newMessages, model, language);
 
 				const topic = res?.answer;
 
@@ -246,7 +301,9 @@ export const useMsgStore = create(
 				});
 				session.messages.push(botMessage);
 				get().onNewMessage(session.messages);
+				get().updateStep(Steps.Transcript_Done);
 				get().summarizeSession();
+				get().runTaskSession();
 			},
 		}),
 		{

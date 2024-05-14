@@ -6,9 +6,10 @@ export const DEFAULT_TOPIC = "Start a New Conversation";
 
 export const ApiPath = {
 	Chat: "http://140.113.207.195:30010/chat",
+	Task: "http://140.113.207.195:30010/task",
 	FileUpload: "http://140.113.207.195:30011/audio",
 	YoutubeQuery: "http://140.113.207.195:30011/youtube",
-	Transcript: "http://140.113.207.195:30011/transcript",
+	Transcript: "http://140.113.207.195:30011/srt",
 };
 
 export const MODELS = [

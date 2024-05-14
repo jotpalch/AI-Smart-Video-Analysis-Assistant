@@ -14,6 +14,7 @@ import {
 export function UploadModal({ onClose }) {
 	const modalRef = useRef();
 	const [file, setFile] = useState(null);
+	const [uploadMode, setUploadMode] = useState(null); // "file" or "youtube"
 
 	const { newSessionWithSetting, updateStep, updateSessionWithTranscript } =
 		useMsgStore((state) => state);
@@ -40,8 +41,8 @@ export function UploadModal({ onClose }) {
 			transcriptResult = await fetch(`${ApiPath.Transcript}/${id}`);
 			if (transcriptResult.status === 200) {
 				transcriptData = await transcriptResult.json();
-				updateSessionWithTranscript(transcriptData.transcript);
-				updateStep(Steps.Transcript_Done);
+				updateSessionWithTranscript(transcriptData.srt);
+				// updateStep(Steps.Transcript_Done);
 				break;
 			} else if (transcriptResult.status === 202) {
 				updateStep(Steps.Transcript_Processing);
@@ -239,7 +240,7 @@ export function UploadModal({ onClose }) {
 		return (
 			<div className="grow mx-2">
 				<label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-					Select Language
+					Select Video Language
 				</label>
 				<select
 					value={setting.language}
@@ -262,7 +263,7 @@ export function UploadModal({ onClose }) {
 		return (
 			<div className="grow mx-2">
 				<label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-					Need Translation
+					Need translation back to English
 				</label>
 				<select
 					value={setting.needTranslation.toString()}
@@ -305,6 +306,25 @@ export function UploadModal({ onClose }) {
 		);
 	};
 
+	const SelectionUploadModeBtns = () => {
+		return (
+			<div className="flex justify-center text-2xl font-bold tracking-wider p-4 border-t border-gray-200 dark:border-gray-600">
+				<button
+					className="w-full bg-red-700 mx-10 my-5 rounded-xl p-4 hover:bg-red-600"
+					onClick={() => setUploadMode("youtube")}
+				>
+					Youtube
+				</button>
+				<button
+					className="w-full bg-blue-700 mx-10 my-5 rounded-xl p-4 hover:bg-blue-600"
+					onClick={() => setUploadMode("file")}
+				>
+					File
+				</button>
+			</div>
+		);
+	};
+
 	return (
 		<div
 			tabIndex="-1"
@@ -314,7 +334,7 @@ export function UploadModal({ onClose }) {
 		>
 			<div className="relative w-full max-w-4xl max-h-full">
 				<div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
-					<div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+					<div className="flex items-center justify-between pt-5 px-5 rounded-t">
 						<h3 className="text-xl font-medium text-gray-900 dark:text-white">
 							Add New Video Materials
 						</h3>
@@ -342,19 +362,26 @@ export function UploadModal({ onClose }) {
 						</button>
 					</div>
 
-					<div className="flex justify-center p-4">
+					<div className="px-5 py-3 text-sm text-gray-400">
+						Select the video materials and choose the way to upload the video
+					</div>
+
+					<div className="flex justify-center p-4 border-t border-gray-200 dark:border-gray-600">
 						<SelectionLanguage />
 						<SelectionNeedTranslation />
 						<SelectionModelSize />
 					</div>
 
-					{!file && <InputYoutubeUrl />}
+					{!uploadMode && <SelectionUploadModeBtns />}
 
-					{!file && <DragUploadField />}
+					{uploadMode === "youtube" && <InputYoutubeUrl />}
+					{uploadMode === "file" && !file && <DragUploadField />}
 
-					<div className={`flex flex-col items-center ${file ? " p-3 " : ""}`}>
+					<div
+						className={`flex flex-col items-center ${file ? " py-10 " : ""}`}
+					>
 						{file?.map((file, idx) => (
-							<div key={idx} className="flex flex-row space-x-10">
+							<div key={idx} className="flex flex-row space-x-20">
 								<span>{file.name}</span>
 								<span className=" text-gray-400">
 									({(file.size / 1048576).toFixed(2)} MB)
@@ -369,19 +396,33 @@ export function UploadModal({ onClose }) {
 						))}
 					</div>
 
-					<div className={`flex justify-center ${file ? " p-5 " : ""}`}>
+					<div className="flex justify-center">
 						{file && (
 							<button
 								onClick={() => {
 									onClose();
 									handleUpload();
 								}}
-								className="block w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								className="block w-full bg-blue-700 mb-5 mx-5 rounded-xl p-3 text-lg font-semibold tracking-wider hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-700"
 							>
-								Upload a file
+								UPLOAD
 							</button>
 						)}
 					</div>
+
+					{uploadMode && (
+						<div className="flex justify-center">
+							<button
+								className="w-full bg-slate-900 mb-5 mx-5 rounded-xl p-3 text-lg font-semibold tracking-wider hover:bg-slate-800"
+								onClick={() => {
+									setUploadMode(null);
+									setFile(null);
+								}}
+							>
+								BACK
+							</button>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

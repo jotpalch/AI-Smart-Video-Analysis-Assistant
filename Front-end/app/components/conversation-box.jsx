@@ -16,7 +16,7 @@ const Spinner = () => {
 		<div role="status" className="mr-3">
 			<svg
 				aria-hidden="true"
-				class="inline w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+				className="inline w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-yellow-600"
 				viewBox="0 0 100 101"
 				fill="none"
 				xmlns="http://www.w3.org/2000/svg"
@@ -30,15 +30,15 @@ const Spinner = () => {
 					fill="currentFill"
 				/>
 			</svg>
-			<span class="sr-only">Loading...</span>
+			<span className="sr-only">Loading...</span>
 		</div>
 	);
 };
 
-const Check = () => {
+const CheckIcon = () => {
 	return (
 		<svg
-			class="w-3.5 h-3.5 sm:w-4 sm:h-4 me-2.5"
+			className="w-3.5 h-3.5 sm:w-4 sm:h-4 me-2.5"
 			aria-hidden="true"
 			xmlns="http://www.w3.org/2000/svg"
 			fill="currentColor"
@@ -49,51 +49,140 @@ const Check = () => {
 	);
 };
 
+const ErrorIcon = () => {
+	return (
+		<svg
+			className="w-6 h-6 me-2.5 text-gray-800 dark:text-red-400"
+			aria-hidden="true"
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			fill="none"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke="currentColor"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+				strokeWidth="2"
+				d="m15 9-6 6m0-6 6 6m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+			/>
+		</svg>
+	);
+};
+
 const Stepper = () => {
 	const step = useMsgStore((state) => state.currentSession().step);
 
 	return (
-		<ol class="flex items-center w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400 sm:text-base">
-			<li class="flex md:w-full items-center text-blue-600 dark:text-blue-500 sm:after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-200 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10 dark:after:border-gray-700">
-				<span class="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:after:text-gray-500">
-					{(() => {
-						if (step >= Steps.Upload_Done) {
-							return <Check />;
-						} else if (step === Steps.Upload_Processing) {
-							return <Spinner />;
-						} else {
-							return <span class="me-2">1</span>;
-						}
-					})()}
-					Upload
-				</span>
-			</li>
-			<li class="flex md:w-full items-center after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-200 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10 dark:after:border-gray-700">
-				<span class="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:after:text-gray-500">
-					{(() => {
-						if (step >= Steps.Transcript_Done) {
-							return <Check />;
-						} else if (step === Steps.Transcript_Processing) {
-							return <Spinner />;
-						} else {
-							return <span class="me-2">2</span>;
-						}
-					})()}
-					Generate <span class="hidden sm:inline-flex sm:ms-2">Transcript</span>
-				</span>
-			</li>
-			<li class="flex items-center">
+		<ol className="flex items-center w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400 sm:text-base">
+			<li className="flex md:w-full items-center text-blue-600 dark:text-blue-500 sm:after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-200 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10 dark:after:border-gray-700">
 				{(() => {
-					if (step >= Steps.Task_Done) {
-						return <Check />;
-					} else if (step === Steps.Task_Processing) {
-						return <Spinner />;
+					if (step >= Steps.Upload_Done) {
+						return (
+							<span className="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:text-green-500">
+								<CheckIcon />
+								Upload
+							</span>
+						);
+					} else if (step === Steps.Upload_Processing) {
+						return (
+							<span className="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 text-yellow-600">
+								<Spinner />
+								Upload
+							</span>
+						);
+					} else if (step === Steps.Upload_Fail) {
+						return (
+							<span className="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:text-red-400">
+								<ErrorIcon />
+								Upload
+							</span>
+						);
 					} else {
-						return <span class="me-2">3</span>;
+						return (
+							<span className="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:after:text-gray-500">
+								<span className="me-2">1</span>; Upload
+							</span>
+						);
 					}
 				})()}
-				Execute<span class="hidden sm:inline-flex sm:ms-2">Specific</span>
-				<span class="hidden sm:inline-flex sm:ms-2">Tasks</span>
+			</li>
+			<li className="flex md:w-full items-center after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-200 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10 dark:after:border-gray-700">
+				{(() => {
+					if (step >= Steps.Transcript_Done) {
+						return (
+							<span className="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:text-green-500">
+								<CheckIcon />
+								Generate
+								<span className="hidden sm:inline-flex sm:ms-2">Transcript</span>
+							</span>
+						);
+					} else if (step === Steps.Transcript_Processing) {
+						return (
+							<span className="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 text-yellow-600">
+								<Spinner />
+								Generate
+								<span className="hidden sm:inline-flex sm:ms-2">Transcript</span>
+							</span>
+						);
+					} else if (step === Steps.Transcript_Fail) {
+						return (
+							<span className="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:text-red-400">
+								<ErrorIcon />
+								Generate
+								<span className="hidden sm:inline-flex sm:ms-2">Transcript</span>
+							</span>
+						);
+					} else {
+						return (
+							<span className="flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:after:text-gray-500">
+								<span className="me-2">2</span>Generate
+								<span className="hidden sm:inline-flex sm:ms-2">Transcript</span>
+							</span>
+						);
+					}
+				})()}
+			</li>
+			<li className="flex items-center">
+				{(() => {
+					if (step >= Steps.Task_Done) {
+						return (
+							<span className="flex items-center sm:after:hidden after:mx-2 after:text-gray-200 dark:text-green-500">
+								<CheckIcon />
+								Execute
+								<span className="hidden sm:inline-flex sm:ms-2">Specific</span>
+								<span className="hidden sm:inline-flex sm:ms-2">Tasks</span>
+							</span>
+						);
+					} else if (step === Steps.Task_Processing) {
+						return (
+							<span className="flex items-center sm:after:hidden after:mx-2 after:text-gray-200 text-yellow-600">
+								<Spinner />
+								Execute
+								<span className="hidden sm:inline-flex sm:ms-2">Specific</span>
+								<span className="hidden sm:inline-flex sm:ms-2">Tasks</span>
+							</span>
+						);
+					} else if (step === Steps.Task_Fail) {
+						return (
+							<span className="flex items-center sm:after:hidden after:mx-2 after:text-gray-200 dark:text-red-400">
+								<ErrorIcon />
+								Execute
+								<span className="hidden sm:inline-flex sm:ms-2">Specific</span>
+								<span className="hidden sm:inline-flex sm:ms-2">Tasks</span>
+							</span>
+						);
+					} else {
+						return (
+							<span className="flex items-center sm:after:hidden after:mx-2 after:text-gray-200 dark:after:text-gray-500">
+								<span className="me-2">3</span>Execute
+								<span className="hidden sm:inline-flex sm:ms-2">Specific</span>
+								<span className="hidden sm:inline-flex sm:ms-2">Tasks</span>
+							</span>
+						);
+					}
+				})()}
 			</li>
 		</ol>
 	);
@@ -124,23 +213,25 @@ export function ConversationBox() {
 					</div>
 				</div>
 				<div className="flex items-center capitalize text-gray-500">
-					<span class="hidden sm:inline-flex sm:ms-4">
+					<span className="hidden sm:inline-flex sm:ms-4">
 						LLM model: {setting.model}
 					</span>
-					<span class="hidden sm:inline-flex sm:ms-4">
+					<span className="hidden sm:inline-flex sm:ms-4">
 						whisper model size: {setting.modelSize}
 					</span>
-					<span class="hidden sm:inline-flex sm:ms-4">
+					<span className="hidden sm:inline-flex sm:ms-4">
 						language: {setting.language}
 					</span>
 					{url.length > 10 ? (
-						<span class="relative hidden sm:inline-flex sm:ms-4 text-blue-600 hover:text-blue-400">
+						<span className="relative hidden sm:inline-flex sm:ms-4 text-blue-600 hover:text-blue-400">
 							<Link href={url} target="_blank">
 								Youtube Link
 							</Link>
 						</span>
 					) : (
-						<span class="hidden sm:inline-flex sm:ms-4 text-gray-400">Via Uploaded File </span>
+						<span className="hidden sm:inline-flex sm:ms-4 text-gray-400">
+							Via Uploaded File{" "}
+						</span>
 					)}
 				</div>
 				<div className="flex items-center p-5">
