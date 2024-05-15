@@ -15,7 +15,7 @@ export const ApiPath = {
 export const MODELS = [
 	{ name: "Llama 3 8B (Local)", code: "llama3" },
 	{ name: "Gemini", code: "gemini" },
-	{ name: "TAIDE 8B (Local)", code: "taide" },
+	// { name: "TAIDE 8B (Local)", code: "taide" },
 ];
 
 export const LANGUAGELIST = [

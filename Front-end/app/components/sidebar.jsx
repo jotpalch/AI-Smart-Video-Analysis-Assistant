@@ -17,8 +17,9 @@ export function Sidebar() {
 
 	return (
 		<div className="flex flex-col gap-2 h-full min-w-[18vw] max-w-[35%] p-5 bg-slate-800">
-			<div className="w-full px-2 py-4 text-xl tracking-tight font-bold border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-200 dark:focus:ring-blue-500 dark:focus:border-blue-500">
-				VideoAnalysisAssistant
+			<div className="w-full px-2 py-4 text-3xl tracking-tight font-bold">
+				<h1 className="inline-block bg-gradient-to-r from-blue-700 via-blue-500 to-indigo-400 text-transparent bg-clip-text">AI Video Analysis Assistant</h1>
+				{/* <h1 className="inline-block bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-300 text-transparent bg-clip-text">AI Learning Platform</h1> */}
 			</div>
 			<div className="relative p-3">
 				<label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">

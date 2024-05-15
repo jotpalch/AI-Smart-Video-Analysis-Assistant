@@ -20,7 +20,7 @@ function createEmptySession() {
 		id: nanoid(),
 		url: "",
 		topic: DEFAULT_TOPIC,
-		step: 0,
+		step: -1,
 		setting: {
 			model: DEFAULT_SETTINGS.model,
 			modelSize: DEFAULT_SETTINGS.modelSize,

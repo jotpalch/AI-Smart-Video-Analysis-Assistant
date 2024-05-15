@@ -64,6 +64,8 @@ export function UploadModal({ onClose }) {
 
 			newSessionWithSetting(setting, "");
 
+			updateStep(Steps.Upload_Processing);
+
 			const formData = new FormData();
 			formData.append("up_file", file[0]);
 			formData.append("language_tag", setting.language);
@@ -99,6 +101,8 @@ export function UploadModal({ onClose }) {
 		const url = document.getElementById("search").value;
 
 		newSessionWithSetting(setting, url);
+
+		updateStep(Steps.Upload_Processing);
 
 		onClose();
 
