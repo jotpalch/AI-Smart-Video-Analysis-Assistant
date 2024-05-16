@@ -1,6 +1,9 @@
-# AI Intelligent Video Analysis Assistant
+# AI Smart Video Analysis Assistant
 
-Welcome to the front-end component of the AI Intelligent Video Analysis Assistant project. For a comprehensive experience of this project, we encourage you to visit our backend repository at https://github.com/Lewis-Luo-2001/LLM-Video-Analysis-Backend.
+Welcome to the front-end component of the AI Intelligent Video Analysis Assistant project. 
+For a comprehensive experience of this project, we encourage you to visit our backend repository at https://github.com/Lewis-Luo-2001/LLM-Video-Analysis-Backend.
+
+The "AI Smart Video Analysis Assistant" is an innovative tool designed to enhance the efficiency of information acquisition. This platform is not only a web application, but also a learning platform that integrates the most advanced artificial intelligence technologies.
 
 ## Local Deployment 
 
